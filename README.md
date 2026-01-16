@@ -50,12 +50,7 @@ Voici une vidéo d'accompagnement pour vous aider dans cette séquence de créat
  . . 2.2.1 Adresses = utilisez le sous-domaine qui vous appartient que vous trouverez dans l'information " Les sous-domaines suivants vous appartiennent et sont actuellement inutilisés : {Site}.alwaysdata.net  
  . . 2.2.2 Répertoire d'installation = **/www/flask**  
  . 2.2.3 N'oubliez pas d'Accepter les conditions.  
-3° - Autoriser les connexions SSH :  
- . 3.1 - Cliquez sur SSH (Accès distant).  
- . 3.2 - Modifier les paramètres de votre utilisateur.  
- . 3.3 - Définissez si besion un nouveau mot de passe.  
- . 3.4 - Cliquez sur **Activer la connexion par mot de passe**.  
-  
+    
 **Travail demandé :** Mettre en ligne votre application Flask "Hello World !" et **copier l'URL de votre site dans la discussion public**.  
   
 Notions acquises lors de cette séquence :  
@@ -79,7 +74,11 @@ Pour ce projet Métriques, **vous avez 4 secrets à créer** dans votre Reposito
   
 Voici une vidéo pour vous expliquer le processus de création de vos secrets dans GitHUB : [Création des secrets](https://youtu.be/pi80zRdrJyQ)  
 Vous pouvez à présent **lancer une action pour mettre en ligne votre solution**.  
+
+**Dernière étape :** Pour engager l'automatisation de votre première Action, vous devez cliquer sur le gros boutton vert dans l'onglet supérieur Actions. Le boutton s'intitule "I understand my workflows, go ahead and enable them"  
   
+![Screenshot Actions](Actions_Button.jpg)   
+
 Notions acquises de cette séquence :  
 Vous avez vu dans cette séquence comment créer des secrets GiHUB afin de mettre en place de l'industrialisation continue.  
 L'utilité des scripts d'actions (C'est à dire des scripts exécutés lors des Commits) est très importante mais sortes malheureusement du cadre de cet atelier faute de temps. Toutefois, je vous invites à découvrir cet outil via les différentes sources du Web (Google, ChatGPT, etc..).  
@@ -146,3 +145,14 @@ Votre projet consiste à present à concevoir et développer une application de 
 Votre travail est de modifier votre code afin de répondre aux besoins définis ci-dessus.
 L'application exploitera des API pour interagir avec la base de données et un contrôle d'accès Utilisateur/Administrateur doit être mis en place.  
 L’application pourra être enrichie avec des fonctionnalités supplémentaires telles que des recommandations de livres, des notifications pour les retours en retard, ou encore des rapports statistiques sur l'utilisation des livres pour améliorer l'expérience utilisateur et la gestion de la bibliothèque.  
+
+--------------------------------------------------------------------
+Troubleshooting :
+---------------------------------------------------
+Objectif : Visualiser ses logs et découvrir ses erreurs
+---------------------------------------------------
+Lors de vos développements, vous serez peut-être confronté à des erreurs systèmes car vous avez faits des erreurs de syntaxes dans votre code, faits de mauvaises déclarations de fonctions, appelez des modules inexistants, mal renseigner vos secrets, etc…  
+Les causes d'erreurs sont quasi illimitées. **Vous devez donc vous tourner vers les logs de votre système pour comprendre d'où vient le problème** :  
+Voici une vidéo pour accéder aux logs de vos Actions GitHUB : [Vidéo Log GitHUB](https://youtu.be/rhGrDLSFH7Y)  
+Voici une vidéo pour vous expliquer comment accéder au logs de votre serveur Alwaysdata : [Vidéo Log Alwaysdata](https://youtu.be/URWMWqVMS2U)  
+  
