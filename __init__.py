@@ -66,6 +66,40 @@ def authentification():
 
 
 # ---------------------------
+# Route consultation livres
+# ---------------------------
+@app.route('/consultation/')
+def ReadLivres():
+    if not est_authentifie():
+        return redirect(url_for('authentification'))
+
+    with sqlite3.connect('database.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM livres')
+        data = cursor.fetchall()
+        headers = [description[0] for description in cursor.description]
+
+    return render_template('read_data.html', data=data, headers=headers)
+
+
+# ---------------------------
+# Route consultation clients
+# ---------------------------
+@app.route('/clients/')
+def ReadClients():
+    if not est_authentifie():
+        return redirect(url_for('authentification'))
+
+    with sqlite3.connect('database.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM clients')
+        data = cursor.fetchall()
+        headers = [description[0] for description in cursor.description]
+
+    return render_template('read_data.html', data=data, headers=headers)
+
+
+# ---------------------------
 # Route consultation d'un livre par titre
 # ---------------------------
 @app.route('/fiche_livre/<titre>')
@@ -77,24 +111,9 @@ def fiche_livre(titre):
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM livres WHERE titre LIKE ?', ('%' + titre + '%',))
         data = cursor.fetchall()
+        headers = [description[0] for description in cursor.description]
 
-    return render_template('read_data.html', data=data)
-
-
-# ---------------------------
-# Route consultation de toute la bibliothèque
-# ---------------------------
-@app.route('/consultation/')
-def ReadBDD():
-    if not est_authentifie():
-        return redirect(url_for('authentification'))
-
-    with sqlite3.connect('database.db') as conn:
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM livres')
-        data = cursor.fetchall()
-
-    return render_template('read_data.html', data=data)
+    return render_template('read_data.html', data=data, headers=headers)
 
 
 # ---------------------------
@@ -137,7 +156,7 @@ def enregistrer_livre():
             error = f"Erreur lors de l'enregistrement : {e}"
             return render_template('formulaire_livre.html', error=error)
 
-        return redirect(url_for('ReadBDD'))
+        return redirect(url_for('ReadLivres'))
 
     return render_template('formulaire_livre.html', error=error)
 
