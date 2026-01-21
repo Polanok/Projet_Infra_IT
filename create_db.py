@@ -1,36 +1,19 @@
 import sqlite3
 
-# Connexion à la base (création si elle n'existe pas)
+# Supprime l'ancienne base si besoin
+# import os
+# if os.path.exists('database.db'):
+#     os.remove('database.db')
+
 with sqlite3.connect('database.db') as conn:
     cursor = conn.cursor()
 
-    # -------------------
-    # Création des tables
-    # -------------------
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS livres (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        titre TEXT NOT NULL,
-        auteur TEXT NOT NULL,
-        annee_publication INTEGER,
-        isbn TEXT,
-        disponible BOOLEAN DEFAULT 1
-    );
-    """)
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS clients (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nom TEXT NOT NULL,
-        prenom TEXT NOT NULL,
-        adresse TEXT,
-        created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-    """)
+    # Exécuter le schema.sql
+    with open('schema.sql', encoding='utf-8') as f:
+        conn.executescript(f.read())
 
     # -------------------
-    # Insertion Clients
+    # Insérer des clients
     # -------------------
     clients = [
         ('DUPONT', 'Emilie', '123, Rue des Lilas, 75001 Paris'),
@@ -47,13 +30,13 @@ with sqlite3.connect('database.db') as conn:
     )
 
     # -------------------
-    # Insertion Livres
+    # Insérer des livres
     # -------------------
     livres = [
         ('Le Petit Prince', 'Antoine de Saint-Exupéry', 1943, '1234567890', 1),
         ('1984', 'George Orwell', 1949, '0987654321', 1),
         ('Les Misérables', 'Victor Hugo', 1862, '1122334455', 1),
-        ('Harry Potter à l\'école des sorciers', 'J.K. Rowling', 1997, '5566778899', 1),
+        ("Harry Potter à l'école des sorciers", 'J.K. Rowling', 1997, '5566778899', 1),
         ('Le Seigneur des Anneaux', 'J.R.R. Tolkien', 1954, '6677889900', 1)
     ]
     cursor.executemany(
