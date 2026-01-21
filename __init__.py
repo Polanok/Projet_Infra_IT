@@ -76,6 +76,30 @@ def enregistrer_client():
     conn.commit()
     conn.close()
     return redirect('/consultation/')  # Rediriger vers la page d'accueil après l'enregistrement
+
+@app.route("/fiche_nom/", methods=["GET"])
+def fiche_nom():
+    nom = request.args.get("nom")
+
+    if not nom:
+        return "Nom manquant", 400
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT * FROM clients WHERE nom = ?",
+        (nom,)
+    )
+
+    client = cursor.fetchone()
+    conn.close()
+
+    if client is None:
+        return "Client non trouvé", 404
+
+    return jsonify(client)
+
                                                                                                                                        
 if __name__ == "__main__":
   app.run(debug=True)
