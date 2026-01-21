@@ -1,9 +1,15 @@
-DROP TABLE IF EXISTS livres;
-
-CREATE TABLE livres (
+-- Table livres
+CREATE TABLE IF NOT EXISTS books (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    titre TEXT NOT NULL,
-    auteur TEXT NOT NULL,
-    annee_publication INTEGER NOT NULL,
-    date_ajout TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    title TEXT NOT NULL,
+    author TEXT NOT NULL,
+    available INTEGER DEFAULT 1
+);
+
+-- Table utilisateurs
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    role TEXT DEFAULT 'user'  -- admin ou user
 );
