@@ -10,7 +10,7 @@ CREATE TABLE livres (
     auteur TEXT NOT NULL,
     annee_publication INTEGER,
     isbn TEXT,
-    disponible BOOLEAN DEFAULT 1 -- 1 pour disponible, 0 pour emprunté
+    disponible BOOLEAN DEFAULT 1
 );
 
 -- -------------------
