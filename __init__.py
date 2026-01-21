@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
 
 app = Flask(__name__)
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'  # Clé secrète pour les sessions
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 # ---------------------------
 # Fonction d'authentification
@@ -45,14 +45,12 @@ def authentification():
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '').strip()
 
-        # Admin
         if username == 'admin' and password == 'password':
             session['authentifie'] = True
             session['username'] = 'admin'
             session['role'] = 'admin'
             return redirect(url_for('lecture'))
 
-        # User simple
         elif username == 'user' and password == '12345':
             session['authentifie'] = True
             session['username'] = 'user'
@@ -66,6 +64,21 @@ def authentification():
 
 
 # ---------------------------
+# Fonction universelle pour lire une table
+# ---------------------------
+def lire_table(table):
+    try:
+        with sqlite3.connect('database.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute(f'SELECT * FROM {table}')
+            data = cursor.fetchall()
+            headers = [desc[0] for desc in cursor.description]
+        return data, headers
+    except sqlite3.OperationalError as e:
+        return [], []
+
+
+# ---------------------------
 # Route consultation livres
 # ---------------------------
 @app.route('/consultation/')
@@ -73,12 +86,7 @@ def ReadLivres():
     if not est_authentifie():
         return redirect(url_for('authentification'))
 
-    with sqlite3.connect('database.db') as conn:
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM livres')
-        data = cursor.fetchall()
-        headers = [description[0] for description in cursor.description]
-
+    data, headers = lire_table('livres')
     return render_template('read_data.html', data=data, headers=headers)
 
 
@@ -90,38 +98,35 @@ def ReadClients():
     if not est_authentifie():
         return redirect(url_for('authentification'))
 
-    with sqlite3.connect('database.db') as conn:
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM clients')
-        data = cursor.fetchall()
-        headers = [description[0] for description in cursor.description]
-
+    data, headers = lire_table('clients')
     return render_template('read_data.html', data=data, headers=headers)
 
 
 # ---------------------------
-# Route consultation d'un livre par titre
+# Route recherche d'un livre par titre
 # ---------------------------
 @app.route('/fiche_livre/<titre>')
 def fiche_livre(titre):
     if not est_authentifie():
         return redirect(url_for('authentification'))
 
-    with sqlite3.connect('database.db') as conn:
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM livres WHERE titre LIKE ?', ('%' + titre + '%',))
-        data = cursor.fetchall()
-        headers = [description[0] for description in cursor.description]
+    try:
+        with sqlite3.connect('database.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM livres WHERE titre LIKE ?', ('%' + titre + '%',))
+            data = cursor.fetchall()
+            headers = [desc[0] for desc in cursor.description]
+    except sqlite3.OperationalError:
+        data, headers = [], []
 
     return render_template('read_data.html', data=data, headers=headers)
 
 
 # ---------------------------
-# Route pour ajouter un livre
+# Route ajout d'un livre
 # ---------------------------
 @app.route('/enregistrer_livre', methods=['GET', 'POST'])
 def enregistrer_livre():
-    # Protection : seul admin
     if not est_authentifie() or session.get('role') != 'admin':
         return "Accès refusé : Seul l'administrateur peut ajouter des livres.", 403
 
@@ -132,19 +137,16 @@ def enregistrer_livre():
         auteur = request.form.get('auteur', '').strip()
         annee = request.form.get('annee', '').strip()
 
-        # Validation
         if not titre or not auteur:
             error = "Titre et auteur sont obligatoires."
             return render_template('formulaire_livre.html', error=error)
 
-        # Conversion année
         try:
             annee = int(annee) if annee else None
         except ValueError:
             error = "Année invalide."
             return render_template('formulaire_livre.html', error=error)
 
-        # Insertion dans la DB
         try:
             with sqlite3.connect('database.db') as conn:
                 cursor = conn.cursor()
@@ -162,7 +164,7 @@ def enregistrer_livre():
 
 
 # ---------------------------
-# Route de déconnexion
+# Route déconnexion
 # ---------------------------
 @app.route('/logout')
 def logout():
@@ -171,7 +173,7 @@ def logout():
 
 
 # ---------------------------
-# Lancement de l'application
+# Lancement
 # ---------------------------
 if __name__ == "__main__":
     app.run(debug=True)
