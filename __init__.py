@@ -5,42 +5,27 @@ app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 # ---------------------------
-# Fonction d'authentification
+# Authentification
 # ---------------------------
 def est_authentifie():
     return session.get('authentifie')
 
 
-# ---------------------------
-# Route accueil
-# ---------------------------
 @app.route('/')
 def home():
     return render_template('hello.html')
 
 
-# ---------------------------
-# Route lecture / dashboard
-# ---------------------------
 @app.route('/lecture')
 def lecture():
     if not est_authentifie():
         return redirect(url_for('authentification'))
-
-    return render_template(
-        'lecture.html',
-        username=session.get('username'),
-        role=session.get('role')
-    )
+    return render_template('lecture.html', username=session.get('username'), role=session.get('role'))
 
 
-# ---------------------------
-# Route authentification
-# ---------------------------
 @app.route('/authentification', methods=['GET', 'POST'])
 def authentification():
     error = None
-
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '').strip()
@@ -50,16 +35,13 @@ def authentification():
             session['username'] = 'admin'
             session['role'] = 'admin'
             return redirect(url_for('lecture'))
-
         elif username == 'user' and password == '12345':
             session['authentifie'] = True
             session['username'] = 'user'
             session['role'] = 'user'
             return redirect(url_for('lecture'))
-
         else:
             error = "Nom d'utilisateur ou mot de passe incorrect."
-
     return render_template('formulaire_authentification.html', error=error)
 
 
@@ -74,42 +56,39 @@ def lire_table(table):
             data = cursor.fetchall()
             headers = [desc[0] for desc in cursor.description]
         return data, headers
-    except sqlite3.OperationalError as e:
+    except sqlite3.OperationalError:
         return [], []
 
 
 # ---------------------------
-# Route consultation livres
+# Consultation livres
 # ---------------------------
 @app.route('/consultation/')
 def ReadLivres():
     if not est_authentifie():
         return redirect(url_for('authentification'))
-
     data, headers = lire_table('livres')
     return render_template('read_data.html', data=data, headers=headers)
 
 
 # ---------------------------
-# Route consultation clients
+# Consultation clients
 # ---------------------------
 @app.route('/clients/')
 def ReadClients():
     if not est_authentifie():
         return redirect(url_for('authentification'))
-
     data, headers = lire_table('clients')
     return render_template('read_data.html', data=data, headers=headers)
 
 
 # ---------------------------
-# Route recherche d'un livre par titre
+# Recherche d'un livre par titre
 # ---------------------------
 @app.route('/fiche_livre/<titre>')
 def fiche_livre(titre):
     if not est_authentifie():
         return redirect(url_for('authentification'))
-
     try:
         with sqlite3.connect('database.db') as conn:
             cursor = conn.cursor()
@@ -118,12 +97,11 @@ def fiche_livre(titre):
             headers = [desc[0] for desc in cursor.description]
     except sqlite3.OperationalError:
         data, headers = [], []
-
     return render_template('read_data.html', data=data, headers=headers)
 
 
 # ---------------------------
-# Route ajout d'un livre
+# Ajouter un nouveau livre
 # ---------------------------
 @app.route('/enregistrer_livre', methods=['GET', 'POST'])
 def enregistrer_livre():
@@ -147,11 +125,12 @@ def enregistrer_livre():
             error = "Année invalide."
             return render_template('formulaire_livre.html', error=error)
 
+        # Insertion dans la table livres
         try:
             with sqlite3.connect('database.db') as conn:
                 cursor = conn.cursor()
                 cursor.execute(
-                    'INSERT INTO livres (titre, auteur, annee_publication) VALUES (?, ?, ?)',
+                    "INSERT INTO livres (titre, auteur, annee_publication) VALUES (?, ?, ?)",
                     (titre, auteur, annee)
                 )
         except Exception as e:
@@ -164,7 +143,7 @@ def enregistrer_livre():
 
 
 # ---------------------------
-# Route déconnexion
+# Déconnexion
 # ---------------------------
 @app.route('/logout')
 def logout():
@@ -172,8 +151,5 @@ def logout():
     return redirect(url_for('home'))
 
 
-# ---------------------------
-# Lancement
-# ---------------------------
 if __name__ == "__main__":
     app.run(debug=True)
