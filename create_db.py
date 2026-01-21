@@ -1,9 +1,9 @@
 import sqlite3
+import os
 
-# Supprime l'ancienne base si besoin
-# import os
-# if os.path.exists('database.db'):
-#     os.remove('database.db')
+# Supprimer l'ancienne base si elle existe
+if os.path.exists('database.db'):
+    os.remove('database.db')
 
 with sqlite3.connect('database.db') as conn:
     cursor = conn.cursor()
