@@ -21,12 +21,14 @@
             </tr>
             {% for row in data %}
             <tr>
-                {% for item in row %}
-                    {% if item is boolean %}
-                        <td>{{ 'Oui' if item else 'Non' }}</td>
-                    {% else %}
-                        <td>{{ item }}</td>
-                    {% endif %}
+                {% for idx, item in enumerate(row) %}
+                    <td>
+                        {% if headers[idx] == 'disponible' %}
+                            {{ 'Oui' if item == 1 else 'Non' }}
+                        {% else %}
+                            {{ item if item is not none else '' }}
+                        {% endif %}
+                    </td>
                 {% endfor %}
             </tr>
             {% endfor %}
