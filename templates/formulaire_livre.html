@@ -1,14 +1,20 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <title>Ajouter un livre</title>
+</head>
 <body>
-    <h2>Ajouter un livre (Admin uniquement)</h2>
-    <form action="/enregistrer_livre" method="post">
-        <input type="text" name="titre" placeholder="Titre du livre" required><br>
-        <input type="text" name="auteur" placeholder="Auteur" required><br>
-        <input type="number" name="annee" placeholder="Année de publication" required><br>
-        <button type="submit">Enregistrer le livre</button>
+    <h1>Ajouter un nouveau livre</h1>
+    <form method="POST">
+        <label for="title">Titre :</label>
+        <input type="text" name="title" id="title" required><br><br>
+
+        <label for="author">Auteur :</label>
+        <input type="text" name="author" id="author" required><br><br>
+
+        <button type="submit">Ajouter le livre</button>
     </form>
     <br>
-    <a href="/consultation/">Retour à la liste</a>
+    <a href="{{ url_for('list_books') }}">Retour à la liste des livres</a>
 </body>
 </html>
