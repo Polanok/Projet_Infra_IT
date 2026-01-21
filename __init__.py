@@ -1,128 +1,94 @@
-from flask import Flask, render_template, request, redirect, url_for, session, Response, jsonify
+from flask import Flask, render_template, jsonify, request, redirect, url_for, session
 import sqlite3
 
-app = Flask(__name__)
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+app = Flask(__name__)                                                                                                                                                                                                                                    
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'  # Clé secrète pour les sessions
 
-# =========================
-# OUTILS
-# =========================
-
-def get_db():
-    return sqlite3.connect("database.db")
-
+# Fonction pour vérifier si l'utilisateur est connecté
 def est_authentifie():
     return session.get('authentifie')
 
-def check_admin(auth):
-    return auth and auth.username == "admin" and auth.password == "password"
-
-def check_user(auth):
-    return auth and auth.username == "user" and auth.password == "12345"
-
-# =========================
-# ROUTES AUTHENTIFICATION
-# =========================
-
 @app.route('/')
-def home():
+def hello_world():
     return render_template('hello.html')
 
-@app.route('/auth', methods=['GET','POST'])
-def auth():
+@app.route('/lecture')
+def lecture():
+    if not est_authentifie():
+        return redirect(url_for('authentification'))
+    return f"<h2>Bienvenue dans la Bibliothèque, {session.get('username')} !</h2><p>Vous êtes connecté en tant que {session.get('role')}.</p>"
+
+@app.route('/authentification', methods=['GET', 'POST'])
+def authentification():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-
+        
+        # Admin pour la gestion totale
         if username == 'admin' and password == 'password':
             session['authentifie'] = True
+            session['username'] = 'admin'
             session['role'] = 'admin'
-            return redirect(url_for('list_books'))
+            return redirect(url_for('lecture'))
+            
+        # User pour la recherche simple
         elif username == 'user' and password == '12345':
             session['authentifie'] = True
+            session['username'] = 'user'
             session['role'] = 'user'
-            return redirect(url_for('list_books'))
+            return redirect(url_for('lecture'))
+            
         else:
             return render_template('formulaire_authentification.html', error=True)
 
     return render_template('formulaire_authentification.html', error=False)
 
-# =========================
-# ROUTES LIVRES
-# =========================
+# Recherche de livre par TITRE (Exercice adapté Séquence 6)
+@app.route('/fiche_livre/<titre>')
+def fiche_livre(titre):
+    if not est_authentifie():
+        return redirect(url_for('authentification'))
 
-@app.route('/books')
-def list_books():
-    conn = get_db()
+    conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM books")
-    books = cursor.fetchall()
+    # Recherche dans la nouvelle table 'livres'
+    cursor.execute('SELECT * FROM livres WHERE titre LIKE ?', ('%' + titre + '%',))
+    data = cursor.fetchall()
     conn.close()
-    return render_template('list_books.html', books=books)
+    
+    return render_template('read_data.html', data=data)
 
-@app.route('/add_book', methods=['GET', 'POST'])
-def add_book():
-    # Vérifier admin
-    auth = request.authorization
-    if not (est_authentifie() and session.get('role') == 'admin'):
-        return Response("Accès refusé", 401, {"WWW-Authenticate": 'Basic realm="Admin Access"'})
+# Consultation de toute la bibliothèque
+@app.route('/consultation/')
+def ReadBDD():
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM livres;')
+    data = cursor.fetchall()
+    conn.close()
+    return render_template('read_data.html', data=data)
+
+# Ajouter un nouveau livre à la bibliothèque
+@app.route('/enregistrer_livre', methods=['GET', 'POST'])
+def enregistrer_livre():
+    # Protection : seul l'admin peut ajouter des livres
+    if not est_authentifie() or session.get('role') != 'admin':
+        return "Accès refusé : Seul l'administrateur peut ajouter des livres.", 403
 
     if request.method == 'POST':
-        title = request.form['title']
-        author = request.form['author']
-        conn = get_db()
+        titre = request.form['titre']
+        auteur = request.form['auteur']
+        annee = request.form['annee']
+        
+        conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO books (title, author) VALUES (?, ?)", (title, author))
+        # Insertion dans la table livres selon le nouveau schema.sql
+        cursor.execute('INSERT INTO livres (titre, auteur, annee_publication) VALUES (?, ?, ?)', (titre, auteur, annee))
         conn.commit()
         conn.close()
-        return redirect(url_for('list_books'))
-
-    return render_template('formulaire_livre.html')
-
-@app.route('/delete_book/<int:book_id>')
-def delete_book(book_id):
-    auth = request.authorization
-    if not (est_authentifie() and session.get('role') == 'admin'):
-        return Response("Accès refusé", 401, {"WWW-Authenticate": 'Basic realm="Admin Access"'})
-
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM books WHERE id = ?", (book_id,))
-    conn.commit()
-    conn.close()
-    return redirect(url_for('list_books'))
-
-@app.route('/borrow/<int:book_id>', methods=['POST'])
-def borrow_book(book_id):
-    if not (est_authentifie() and session.get('role') == 'user'):
-        return Response("Accès refusé", 401, {"WWW-Authenticate": 'Basic realm="User Access"'})
-
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT available FROM books WHERE id = ?", (book_id,))
-    book = cursor.fetchone()
-    if not book or book[0] == 0:
-        conn.close()
-        return "Livre indisponible", 400
-
-    cursor.execute("UPDATE books SET available = 0 WHERE id = ?", (book_id,))
-    conn.commit()
-    conn.close()
-    return redirect(url_for('list_books'))
-
-@app.route('/search', methods=['GET'])
-def search_books():
-    title = request.args.get('title', '')
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM books WHERE title LIKE ? AND available = 1", (f"%{title}%",))
-    results = cursor.fetchall()
-    conn.close()
-    return render_template('search_results.html', books=results)
-
-# =========================
-# RUN APP
-# =========================
+        return redirect(url_for('ReadBDD'))
+        
+    return render_template('formulaire_livre.html') # Assurez-vous d'avoir ce template
 
 if __name__ == "__main__":
-    app.run(debug=True)
+  app.run(debug=True)
