@@ -4,9 +4,30 @@ import sqlite3
 with sqlite3.connect('database.db') as conn:
     cursor = conn.cursor()
 
-    # Lecture et exécution du schema.sql
-    with open('schema.sql', encoding='utf-8') as f:
-        conn.executescript(f.read())
+    # -------------------
+    # Création des tables
+    # -------------------
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS livres (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        titre TEXT NOT NULL,
+        auteur TEXT NOT NULL,
+        annee_publication INTEGER,
+        isbn TEXT,
+        disponible BOOLEAN DEFAULT 1
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS clients (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nom TEXT NOT NULL,
+        prenom TEXT NOT NULL,
+        adresse TEXT,
+        created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
 
     # -------------------
     # Insertion Clients
@@ -21,7 +42,6 @@ with sqlite3.connect('database.db') as conn:
         ('DUBOIS', 'Charlotte', '789, Rue des Roses, 13005 Marseille'),
         ('LEFEVRE', 'Thomas', '333, Rue de la Paix, 75002 Paris')
     ]
-
     cursor.executemany(
         "INSERT INTO clients (nom, prenom, adresse) VALUES (?, ?, ?)", clients
     )
@@ -36,7 +56,6 @@ with sqlite3.connect('database.db') as conn:
         ('Harry Potter à l\'école des sorciers', 'J.K. Rowling', 1997, '5566778899', 1),
         ('Le Seigneur des Anneaux', 'J.R.R. Tolkien', 1954, '6677889900', 1)
     ]
-
     cursor.executemany(
         "INSERT INTO livres (titre, auteur, annee_publication, isbn, disponible) VALUES (?, ?, ?, ?, ?)",
         livres
