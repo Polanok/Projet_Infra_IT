@@ -1,15 +1,11 @@
--- Table livres
-CREATE TABLE IF NOT EXISTS books (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    author TEXT NOT NULL,
-    available INTEGER DEFAULT 1
-);
+DROP TABLE IF EXISTS livres;
 
--- Table utilisateurs
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE livres (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    role TEXT DEFAULT 'user'  -- admin ou user
+    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    titre TEXT NOT NULL,
+    auteur TEXT NOT NULL,
+    annee_publication INTEGER,
+    isbn TEXT,
+    disponible BOOLEAN DEFAULT 1 -- 1 pour disponible, 0 pour emprunté
 );
