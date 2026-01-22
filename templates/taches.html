@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gestion des tâches</title>
+</head>
+<body>
+    <h1>Gestion des tâches</h1>
+
+    <form method="POST" action="/taches/ajouter">
+        <input type="text" name="titre" placeholder="Titre" required><br><br>
+        <textarea name="description" placeholder="Description"></textarea><br><br>
+        <input type="date" name="date_echeance"><br><br>
+        <button type="submit">Ajouter</button>
+    </form>
+
+    <hr>
+
+    <ul>
+        {% for t in taches %}
+            <li>
+                <strong>{{ t[2] }}</strong> — {{ t[3] }}  
+                | Échéance : {{ t[4] }}  
+                | {{ "Terminée" if t[5] else "En cours" }}
+
+                <a href="/taches/terminer/{{ t[0] }}">✔</a>
+                <a href="/taches/supprimer/{{ t[0] }}">❌</a>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <br>
+    <a href="/">Retour accueil</a>
+</body>
+</html>
