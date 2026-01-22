@@ -1,46 +1,27 @@
 import sqlite3
 
+# Connexion à la base de données (le fichier sera créé s'il n'existe pas)
 connection = sqlite3.connect('database.db')
-cursor = connection.cursor()
 
-# Table livres (bibliothèque)
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS livres (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    titre TEXT NOT NULL,
-    auteur TEXT NOT NULL,
-    annee_publication INTEGER
-)
-""")
+# Lecture et exécution du fichier schema.sql (qui contient CREATE TABLE livres)
+with open('schema.sql') as f:
+    connection.executescript(f.read())
 
-# Table taches (mini projet PDF)
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS taches (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    titre TEXT NOT NULL,
-    description TEXT,
-    date_echeance TEXT,
-    est_terminee BOOLEAN DEFAULT 0
-)
-""")
+cur = connection.cursor()
 
-# Données de test uniquement si livres est vide
-cursor.execute("SELECT COUNT(*) FROM livres")
-if cursor.fetchone()[0] == 0:
-    livres = [
-        ('Le Petit Prince', 'Antoine de Saint-Exupéry', 1943),
-        ('1984', 'George Orwell', 1949),
-        ('Le Seigneur des Anneaux', 'J.R.R. Tolkien', 1954),
-        ("L'Étranger", 'Albert Camus', 1942),
-        ("Harry Potter à l'école des sorciers", 'J.K. Rowling', 1997)
-    ]
-    cursor.executemany(
-        "INSERT INTO livres (titre, auteur, annee_publication) VALUES (?, ?, ?)",
-        livres
-    )
+# Insertion de quelques livres pour tester votre application Bibliothèque
+cur.execute("INSERT INTO livres (titre, auteur) VALUES (?, ?)", 
+            ('Le Petit Prince', 'Antoine de Saint-Exupéry'))
+cur.execute("INSERT INTO livres (titre, auteur) VALUES (?, ?)", 
+            ('1984', 'George Orwell'))
+cur.execute("INSERT INTO livres (titre, auteur) VALUES (?, ?)", 
+            ('Le Seigneur des Anneaux', 'J.R.R. Tolkien'))
+cur.execute("INSERT INTO livres (titre, auteur) VALUES (?, ?)", 
+            ('L''Étranger', 'Albert Camus'))
+cur.execute("INSERT INTO livres (titre, auteur) VALUES (?, ?)", 
+            ('Harry Potter à l''école des sorciers', 'J.K. Rowling'))
 
 connection.commit()
 connection.close()
 
-print("Base de données initialisée sans perte de données.")
+print("Base de données initialisée avec succès avec la table 'livres' !")
