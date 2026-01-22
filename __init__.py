@@ -1,10 +1,9 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
 
-app = Flask(__name__)                                                                                                                                                                                                                                    
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'  # Clé secrète pour les sessions
+app = Flask(__name__)
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
-# Fonction pour vérifier si l'utilisateur est connecté
 def est_authentifie():
     return session.get('authentifie')
 
@@ -16,79 +15,85 @@ def hello_world():
 def lecture():
     if not est_authentifie():
         return redirect(url_for('authentification'))
-    return f"<h2>Bienvenue dans la Bibliothèque, {session.get('username')} !</h2><p>Vous êtes connecté en tant que {session.get('role')}.</p>"
+    return f"<h2>Bienvenue, {session.get('username')} ({session.get('role')})</h2>"
 
 @app.route('/authentification', methods=['GET', 'POST'])
 def authentification():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        
-        # Admin pour la gestion totale
+
         if username == 'admin' and password == 'password':
             session['authentifie'] = True
             session['username'] = 'admin'
             session['role'] = 'admin'
             return redirect(url_for('lecture'))
-            
-        # User pour la recherche simple
+
         elif username == 'user' and password == '12345':
             session['authentifie'] = True
             session['username'] = 'user'
             session['role'] = 'user'
             return redirect(url_for('lecture'))
-            
-        else:
-            return render_template('formulaire_authentification.html', error=True)
+
+        return render_template('formulaire_authentification.html', error=True)
 
     return render_template('formulaire_authentification.html', error=False)
 
-# Recherche de livre par TITRE (Exercice adapté Séquence 6)
-@app.route('/fiche_livre/<titre>')
-def fiche_livre(titre):
+# =======================
+# GESTION DES TÂCHES
+# =======================
+
+@app.route('/taches')
+def taches():
     if not est_authentifie():
         return redirect(url_for('authentification'))
 
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
-    # Recherche dans la nouvelle table 'livres'
-    cursor.execute('SELECT * FROM livres WHERE titre LIKE ?', ('%' + titre + '%',))
+    cursor.execute("SELECT * FROM taches ORDER BY created DESC")
     data = cursor.fetchall()
     conn.close()
-    
-    return render_template('read_data.html', data=data)
 
-# Consultation de toute la bibliothèque
-@app.route('/consultation/')
-def ReadBDD():
+    return render_template('taches.html', taches=data)
+
+@app.route('/taches/ajouter', methods=['POST'])
+def ajouter_tache():
+    titre = request.form['titre']
+    description = request.form['description']
+    date_echeance = request.form['date_echeance']
+
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM livres;')
-    data = cursor.fetchall()
+    cursor.execute(
+        "INSERT INTO taches (titre, description, date_echeance) VALUES (?, ?, ?)",
+        (titre, description, date_echeance)
+    )
+    conn.commit()
     conn.close()
-    return render_template('read_data.html', data=data)
 
-# Ajouter un nouveau livre à la bibliothèque
-@app.route('/enregistrer_livre', methods=['GET', 'POST'])
-def enregistrer_livre():
-    # Protection : seul l'admin peut ajouter des livres
-    if not est_authentifie() or session.get('role') != 'admin':
-        return "Accès refusé : Seul l'administrateur peut ajouter des livres.", 403
+    return redirect(url_for('taches'))
 
-    if request.method == 'POST':
-        titre = request.form['titre']
-        auteur = request.form['auteur']
-        annee = request.form['annee']
-        
-        conn = sqlite3.connect('database.db')
-        cursor = conn.cursor()
-        # Insertion dans la table livres selon le nouveau schema.sql
-        cursor.execute('INSERT INTO livres (titre, auteur, annee_publication) VALUES (?, ?, ?)', (titre, auteur, annee))
-        conn.commit()
-        conn.close()
-        return redirect(url_for('ReadBDD'))
-        
-    return render_template('formulaire_livre.html') # Assurez-vous d'avoir ce template
+@app.route('/taches/supprimer/<int:id>')
+def supprimer_tache(id):
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM taches WHERE id = ?", (id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('taches'))
+
+@app.route('/taches/terminer/<int:id>')
+def terminer_tache(id):
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE taches 
+        SET est_terminee = CASE est_terminee WHEN 1 THEN 0 ELSE 1 END 
+        WHERE id = ?
+    """, (id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('taches'))
 
 if __name__ == "__main__":
-  app.run(debug=True)
+    app.run(debug=True)
