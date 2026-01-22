@@ -1,29 +1,12 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Ajouter un livre</title>
-</head>
+<html>
 <body>
     <h2>Ajouter un nouveau livre</h2>
-
-    {% if error %}
-        <p style="color:red;">{{ error }}</p>
-    {% endif %}
-
-    <form action="{{ url_for('enregistrer_livre') }}" method="post">
-        <label>Titre:</label>
-        <input type="text" name="titre" required><br><br>
-
-        <label>Auteur:</label>
-        <input type="text" name="auteur" required><br><br>
-
-        <label>Année de publication:</label>
-        <input type="number" name="annee"><br><br>
-
+    <form action="/enregistrer_livre" method="post">
+        Titre: <input type="text" name="titre"><br>
+        Auteur: <input type="text" name="auteur"><br>
+        Année: <input type="number" name="annee"><br>
         <input type="submit" value="Enregistrer">
     </form>
-
-    <p><a href="{{ url_for('ReadLivres') }}">Retour à la liste des livres</a></p>
 </body>
 </html>
