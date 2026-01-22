@@ -1,20 +1,31 @@
 import sqlite3
+import os
 
-connection = sqlite3.connect('database.db')
+# Chemin ABSOLU vers le dossier du projet
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-with open('schema.sql') as f:
-    connection.executescript(f.read())
+# Chemin ABSOLU vers la base SQLite
+DB_PATH = os.path.join(BASE_DIR, "database.db")
 
-cur = connection.cursor()
+print("Création de la base de données ici :", DB_PATH)
 
-cur.execute("INSERT INTO livres (titre, auteur) VALUES (?, ?)", ('Le Petit Prince', 'Antoine de Saint-Exupéry'))
-cur.execute("INSERT INTO livres (titre, auteur) VALUES (?, ?)", ('1984', 'George Orwell'))
-cur.execute("INSERT INTO livres (titre, auteur) VALUES (?, ?)", ('Le Seigneur des Anneaux', 'J.R.R. Tolkien'))
-cur.execute("INSERT INTO livres (titre, auteur) VALUES (?, ?)", ('L''Étranger', 'Albert Camus'))
-cur.execute("INSERT INTO livres (titre, auteur) VALUES (?, ?)", ('Harry Potter à l''école des sorciers', 'J.K. Rowling'))
-cur.execute("INSERT INTO livres (titre, auteur) VALUES (?, ?)", ('Le Père Goriot', 'Honoré de Balzac'))
-cur.execute("INSERT INTO livres (titre, auteur) VALUES (?, ?)", ('Les Misérables', 'Victor Hugo'))
-cur.execute("INSERT INTO livres (titre, auteur) VALUES (?, ?)", ('Une vie', 'Guy de Maupassant'))
+# Connexion (le fichier sera créé s'il n'existe pas)
+connection = sqlite3.connect(DB_PATH)
+cursor = connection.cursor()
+
+# Création de la table taches (mini projet gestion de tâches)
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS taches (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    titre TEXT NOT NULL,
+    description TEXT,
+    date_echeance TEXT,
+    est_terminee BOOLEAN DEFAULT 0
+)
+""")
 
 connection.commit()
 connection.close()
+
+print("Base de données et table 'taches' créées avec succès.")
